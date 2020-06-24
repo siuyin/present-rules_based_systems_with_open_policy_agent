@@ -1,0 +1,7 @@
+applicants:
+- applicant:
+    resident_status: "pr"
+- applicant:
+    resident_status: "citizen"
+- applicant:
+    resident_status: "other"

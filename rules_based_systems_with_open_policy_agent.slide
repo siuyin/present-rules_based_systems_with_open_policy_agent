@@ -1,0 +1,98 @@
+# Rules Based Systems with Open Policy Agent
+
+24 Jun 2020
+Loh Siu Yin
+Technology Consultant, Beyond Broadcast LLP
+siuyin@beyondbroadcast.com
+
+## Complex Rules-based Systems
+
+Think about the eligibility criteria for buying a
+Singapore Housing Development Board flat.
+
+.image img/hdb-eligibility.png _ 640
+
+## Traditional Systems
+
+input ⇨ system ⇨ output
+
+- input is some form of structured document, typically json or yaml.
+- system:
+  - converts input to an internal data structure
+  - uses a series of `if` statements to determine output
+
+The challenge is managing the complex web of if-then-else statements.
+Think about the `if` statements to implement the citizenship criteria rule:
+
+- At least 1 Singapore Citizen applicant
+- At least 1 other Singapore Citizen or Singapore Permanent Resident (Conditions attached)
+
+## OPA's rego language if structure is different
+
+Traditional `if` structure:
+
+```
+if (method == "GET" && url != "secret") ||
+   (method == "POST" && url == "newcustomer") {
+  return allow
+}
+return !allow
+```
+
+OPA's `if` structure:
+
+```
+default allow = false
+allow {
+  method == "GET"
+  url != "secret"
+}
+
+allow {
+  method == "POST"
+  url == "newcustomer"
+}
+```
+
+All expressions within an `allow` rule must evaluate to `true` for rule to be true.
+Otherwise the rule is undefined and falls back to a default value if a default is declared.
+
+## OPA rules can return many types
+
+An OPA rule can return a boolean, string, number, json array or  json object.
+
+```
+grant = {
+  "status":"approved -- needy", "amount": 100
+  } {
+    income < 10
+}
+grant = {
+  "status":"approved -- very needy", "amount": 200
+  } {
+    income < 5
+}
+grant = {
+  "status":"denied", "amount": 0
+  } {
+    income >= 10
+}
+```
+
+The above `grant` rule value is assigned the appropriate json object depending on the income input.
+
+## OPA rules can scan the input document
+
+hdb_criteria.rego:
+
+.code scan_example/hdb_criteria.rego
+
+hdb_application.yaml:
+
+.code scan_example/hdb_application.yaml
+
+OPA evaluation run
+```
+cd scan_example
+opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
+```
