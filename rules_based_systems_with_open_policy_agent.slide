@@ -96,3 +96,53 @@ OPA evaluation run
 cd scan_example
 opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
 ```
+
+## Explaining `input` and `data`
+
+input ⇨ system ⇨ output
+
+OPA assignes the input yaml or json document to an internal global variable named `input`.
+
+The OPA system contains policies (.rego files), internal data (.json or yaml files)
+and optionally external data connections (eg. to databases).
+
+These policies and data are assigned to an internal global variable named `data`.
+
+Thus for: 
+```
+opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
+```
+
+- hdb_application.yaml is decoded to an internal object named `input`
+- hdb_criteria.rego is loaded into the OPA system and named `data`
+- `--format pretty`, pretty prints the output
+- `data.hdb` is the query
+
+## Packages
+
+.code scan_example/hdb_criteria.rego
+
+OPA policies belong to named packages like `package hdb` or `package hdb.new_flat.keys`.
+
+Thus the `data.hdb` query in:
+```
+opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
+```
+means "tell me about policy decisions made in the hdb package".
+
+## The meaning of _ 
+
+.code scan_example/hdb_criteria.rego
+
+The above reads:
+- if `at_least_one_citizen` is undefined, give it the default value `false`.
+- `at_least_one_citizen` is true if there is some input applicants[i] whose resident_status is "citizen".
+
+## input.applicants[ _ ]
+
+.code scan_example/hdb_application.yaml
+
+In the above case:
+- applicants[0] ⇨ "pr"
+- applicants[1] ⇨ "citizen"
+- applicants[2] ⇨ "other"
