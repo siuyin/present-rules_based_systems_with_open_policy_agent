@@ -130,13 +130,21 @@ opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty d
 ```
 means "tell me about policy decisions made in the hdb package".
 
+And OPA outputs:
+```
+{
+  "at_least_one_citizen": true
+}
+
+```
+
 ## The meaning of _ 
 
 .code scan_example/hdb_criteria.rego
 
 The above reads:
 - if `at_least_one_citizen` is undefined, give it the default value `false`.
-- `at_least_one_citizen` is true if there is some input applicants[i] whose resident_status is "citizen".
+- `at_least_one_citizen` is true if there is some input applicants[ i ] whose resident_status is "citizen".
 
 ## input.applicants[ _ ]
 
@@ -146,3 +154,58 @@ In the above case:
 - applicants[0] ⇨ "pr"
 - applicants[1] ⇨ "citizen"
 - applicants[2] ⇨ "other"
+
+## At least two Singapore Citizens or a Citizen and a PR
+
+.code two_example/hdb_criteria.rego
+
+The above reads: For some i and j where i is not equal to j ....
+
+## Testing policies
+
+.code two_example/hdb_criteria_test.rego
+
+## Running the test
+
+The previous test code is in hdb_criteria_test.rego. We run it thus: 
+
+```
+cd two_example
+opa test . --verbose
+```
+
+And the results:
+```
+data.hdb.test_at_least_two_citizens_or_a_citizen_and_a_pr: PASS (918.925µs)
+--------------------------------------------------------------------------------
+PASS: 1/1
+
+```
+
+Now let's change the test fixture to cause a failure to see how OPA test reports
+a failure.
+
+## Deployment
+
+Open Policy Agent can be deployed:
+- as a standalone binary with no other dependencies.
+  This is how I have been running OPA in this talk.
+- as a sidecar container in a kubernetes pod.
+- as a docker container in some containerized environment.
+- as a library linked into a `Go` program.
+
+The usual way to interact with OPA is via http/json calls
+to the OPA process. This makes OPA language-independent with the
+only constraint being the communications speak json.
+
+I plan to give a follow-up talk on using functions written in
+OPA's policy language `rego`.
+
+Stay tuned.
+
+## Presentation and source code
+
+Available at: 
+
+.link https://github.com/siuyin/present-rules_based_systems_with_open_policy_agent
+
