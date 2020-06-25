@@ -1,4 +1,4 @@
-pakage hello
+package hello
 
 # greet always returns "hello world"
 greet() = x {

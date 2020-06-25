@@ -2,18 +2,18 @@
 package siuyin.time
 
 # age returns the age in years (integer), 
-# given a specified time,t (ns since epoch), and
+# given a specified time, t (nanoseconds since epoch), and
 # a date of birth, dob (string yyyy-mm-dd).
 age(t, dob) = x {
   bt := parse_time(dob)
   bcy := birthday_in_current_year(t,bt)
-  t >= bcy
+  t >= bcy    # celebrated birthday this year
   x := year(t) - year(bt)
 }
 age(t, dob) = x {
   bt := parse_time(dob)
   bcy := birthday_in_current_year(t,bt)
-  t < bcy
+  t < bcy     # yet to celebrate birthday
   x := year(t) - year(bt) -1
 }
 # 20 OMIT
@@ -24,11 +24,11 @@ parse_time(dob) = x {
 
 birthday_in_current_year(current_time,birth_time) = x {
   cy := year(current_time)
-  bymd := time.date(birth_time)
+  bymd := time.date(birth_time)   # time.date returns [year, month, day]
   x := parse_time(sprintf("%04d-%02d-%02d",[ cy, bymd[1], bymd[2] ]))
 }
 
 year(t) = x {
-  x := time.date(t)[0]  # time.date returns [year, month, day]
+  x := time.date(t)[0]
 }
 # 30 OMIT

@@ -1,6 +1,9 @@
 # Rules Based Systems with Open Policy Agent - Part 2
 Rego functions and packages
 25 Jun 2020
+Tags: tools,tutorial
+Summary: A tutorial on writing and using functions in OPA's rego language.
+OldURL:
 
 Loh Siu Yin
 Technology Consultant, Beyond Broadcast LLP
@@ -8,10 +11,10 @@ siuyin@beyondbroadcast.com
 
 ## If you missed part 1
 
-View the presentation video [here](https://youtu.be/ME76bNuwJRI).
+View the presentation video for part 1 [here](https://youtu.be/ME76bNuwJRI).
 
 ## A quick re-cap
-The example problem we are working on is the eligibility criteria for a
+The example problem we are working on is: eligibility criteria for buying 
 new Singapore Housing Development flat.
 
 .image img/hdb-eligibility.png _ 640
@@ -19,14 +22,18 @@ new Singapore Housing Development flat.
 ## Age eligibility: At least 21 years old
 Let's take this to mean at least one of the applicants is 21 year of age.
 
-This means we must capture the applicants ages in the input. However 
-date of birth is better as it does not change as age does.
+We need the applicants' ages in the input.
 
-How do we reconcile this? We need a function to compute age.
+However instead of age, we should capture date of birth. 
+Date of birth does not change as age does.
+
+How do we reconcile this?
+
+We need a function to compute age from date of birth.
 
 ## Where should we implement the age function?
 OPA and it's language rego is optimized for writing and querying policies.
-It is not a general purpose programming language.
+It is _not_ a general purpose programming language.
 
 Thus we are persuaded to implement the `age` function in the program
 that calls or queries OPA.
@@ -34,15 +41,15 @@ that calls or queries OPA.
 However if there are many programs that all make `age` type queries of OPA,
 and if those programs are implemented by different teams;
 
-It makes sense to have `age` implemented as a commonly called function within
-OPA itself.
+`age` should implemented as a library function within
+OPA itself. This way, there is only one `age` function to maintain.
 
 ## OPA time functions
 OPA has many built-in functions, including time related functions.
 
 .image img/opa-time_functions.png _ 600
 
-However there is no `age` function.
+However there _isn't_ an `age` function.
 
 We want something like `age(at, dob)` which gives the age in years at 
 a particular date, given a date of birth.
@@ -63,6 +70,7 @@ Thus we need to wrap our argument in an array construct.
 
 .code hello_func/hello_test.rego
 
+The `%q` wraps the argument in quotes.
 
 Running the test:
 ```
@@ -70,8 +78,7 @@ cd hello_func
 opa test . -v
 ```
 
-Let's replace the empty argument and cause the test to fail.
-The `%q` wraps the argument in quotes.
+Let's replace the empty argument to cause the test to fail.
 
 ## Functions vs Rules
 
@@ -99,6 +106,8 @@ Try changing `greet()` to `greet`.
 
 Note the two-piece definition of the age function.
 
+Let us look at age's component functions.
+
 ## age internal functions
 
 .code siuyin/time/time.rego /20 O/,/30 O/
@@ -109,11 +118,36 @@ time.parse_ns, time.date and sprintf are rego built-in functions.
 
 .code siuyin/time/time_test.rego
 
-## HDB flat purchase age eligibility
+## HDB flat purchase: age eligibility
 
 .code age_example/hdb.rego
 
+package siuyin.time has been loaded into the OPA internal
+global variable `data`. Hence it is imported as `data.siuyin.time`.
+
+However `siuyin.time` clashes with built-in `time`, hence the `as` modifier.
+
+Where is data.minimum_age defined?
+
+## data.minimum_age
+
+OPA loads all .rego, .json and .yaml files in specified paths into the `data` variable.
+
+age_criteria.yaml:
+
+.code age_example/age_criteria.yaml
+
+In addition to static files, OPA can also periodically pull data bundles.
+
+OPA can also directly query an external database with OPA's built-in `http` function.
+
+## Age criteria: test code
 .code age_example/hdb_test.rego
+
+```
+cd age_example
+opa test . ../siuyin/time -v
+```
 
 ## Presentation and source code
 
