@@ -5,7 +5,7 @@ test_greet {
 }
 
 test_greet_empty_arg {
-  g := greet("")
+  g := greet("a")
   trace(sprintf("g := %q",[g]))
   g == "hello, "
 }
