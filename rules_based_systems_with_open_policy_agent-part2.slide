@@ -1,0 +1,123 @@
+# Rules Based Systems with Open Policy Agent - Part 2
+Rego functions and packages
+25 Jun 2020
+
+Loh Siu Yin
+Technology Consultant, Beyond Broadcast LLP
+siuyin@beyondbroadcast.com
+
+## If you missed part 1
+
+View the presentation video [here](https://youtu.be/ME76bNuwJRI).
+
+## A quick re-cap
+The example problem we are working on is the eligibility criteria for a
+new Singapore Housing Development flat.
+
+.image img/hdb-eligibility.png _ 640
+
+## Age eligibility: At least 21 years old
+Let's take this to mean at least one of the applicants is 21 year of age.
+
+This means we must capture the applicants ages in the input. However 
+date of birth is better as it does not change as age does.
+
+How do we reconcile this? We need a function to compute age.
+
+## Where should we implement the age function?
+OPA and it's language rego is optimized for writing and querying policies.
+It is not a general purpose programming language.
+
+Thus we are persuaded to implement the `age` function in the program
+that calls or queries OPA.
+
+However if there are many programs that all make `age` type queries of OPA,
+and if those programs are implemented by different teams;
+
+It makes sense to have `age` implemented as a commonly called function within
+OPA itself.
+
+## OPA time functions
+OPA has many built-in functions, including time related functions.
+
+.image img/opa-time_functions.png _ 600
+
+However there is no `age` function.
+
+We want something like `age(at, dob)` which gives the age in years at 
+a particular date, given a date of birth.
+
+## Hello function
+
+.code hello_func/hello.rego
+
+Functions, like rules, reside within a package. In this case, a package named `hello`.
+
+The return value of the above function is `x`, where `x` is assigned a value
+within the body of the function. Note the `:=` assignment operator.
+
+`sprintf` is a rego built-in function that takes a format string and an `array` of values.
+Thus we need to wrap our argument in an array construct.
+
+## Testing and debugging
+
+.code hello_func/hello_test.rego
+
+
+Running the test:
+```
+cd hello_func
+opa test . -v
+```
+
+Let's replace the empty argument and cause the test to fail.
+The `%q` wraps the argument in quotes.
+
+## Functions vs Rules
+
+Below is a function with no parameters.
+
+.code func_or_rule/hello.rego
+
+And its test code.
+
+.code func_or_rule/hello_test.rego
+
+Now lets run the test.
+
+```
+cd func_or_rule
+opa test . -v
+```
+Try changing `greet()` to `greet`.
+
+## OPA functions that always do the same thing are rules
+
+## age function
+
+.code siuyin/time/time.rego /10 O/,/20 O/
+
+Note the two-piece definition of the age function.
+
+## age internal functions
+
+.code siuyin/time/time.rego /20 O/,/30 O/
+
+time.parse_ns, time.date and sprintf are rego built-in functions.
+
+## age function tests
+
+.code siuyin/time/time_test.rego
+
+## HDB flat purchase age eligibility
+
+.code age_example/hdb.rego
+
+.code age_example/hdb_test.rego
+
+## Presentation and source code
+
+Available at: 
+
+.link https://github.com/siuyin/present-rules_based_systems_with_open_policy_agent
+
