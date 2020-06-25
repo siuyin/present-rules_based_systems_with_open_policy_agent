@@ -1,6 +1,6 @@
 package hello
 
 test_greet {
-  greet == "hello world"
+  greet() == "hello world"
 }
 
