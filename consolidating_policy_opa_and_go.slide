@@ -1,0 +1,216 @@
+# Consolidating Policy / Authorisation Decisions
+Open Policy Agent and Go 
+26 Aug 2020
+
+Loh Siu Yin
+Technology Consultant, Beyond Broadcast LLP
+siuyin@beyondbroadcast.com
+
+## A Go program asking for permission
+
+.play perm/main.go
+
+## Complex if-then-else logic
+
+Below is the eligibility criteria for buying a
+flat from the real
+Singapore Housing Development Board.
+
+.image img/hdb-eligibility.png _ 640
+
+## Policy Checking Systems
+
+input ⇨ system ⇨ output
+
+- input is some form of structured document, typically json or yaml.
+- system:
+  - converts input to an internal data structure
+  - uses a series of `if` statements to determine output
+
+The challenge is managing the complex web of if-then-else statements.
+Think about the `if` statements to implement the citizenship criteria rule:
+
+- At least 1 Singapore Citizen applicant
+- At least 1 other Singapore Citizen or Singapore Permanent Resident (Conditions attached)
+
+## Open Policy Agent (OPA)
+
+## OPA has a specialized policy language -- rego
+
+Traditional `if` structure:
+
+```
+if (method == "GET" && url != "secret") ||
+   (method == "POST" && url == "newcustomer") {
+  return allow
+}
+return !allow
+```
+
+OPA's rego `if` structure:
+
+```
+default allow = false
+allow {
+  method == "GET"
+  url != "secret"
+}
+
+allow {
+  method == "POST"
+  url == "newcustomer"
+}
+```
+
+All expressions within an `allow` rule must evaluate to `true` for rule to be true.
+Otherwise the rule is undefined and falls back to a default value if a default is declared.
+
+## OPA rules can return many types
+
+An OPA rule can return a boolean, string, number, json array or  json object.
+
+```
+grant = {
+  "status":"approved -- needy", "amount": 100
+  } {
+    income < 10
+}
+grant = {
+  "status":"approved -- very needy", "amount": 200
+  } {
+    income < 5
+}
+grant = {
+  "status":"denied", "amount": 0
+  } {
+    income >= 10
+}
+```
+
+The above `grant` rule value is assigned the appropriate json object depending on the income input.
+
+## OPA rules can scan the input document
+
+hdb_criteria.rego:
+
+.code scan_example/hdb_criteria.rego
+
+hdb_application.yaml:
+
+.code scan_example/hdb_application.yaml
+
+OPA evaluation run
+```
+cd scan_example
+opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
+```
+
+## Explaining `input` and `data`
+
+input ⇨ system ⇨ output
+
+OPA assignes the input yaml or json document to an internal global variable named `input`.
+
+The OPA system contains policies (.rego files), internal data (.json or yaml files)
+and optionally external data connections (eg. to databases).
+
+These policies and data are assigned to an internal global variable named `data`.
+
+Thus for: 
+```
+opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
+```
+
+- hdb_application.yaml is decoded to an internal object named `input`
+- hdb_criteria.rego is loaded into the OPA system and named `data`
+- `--format pretty`, pretty prints the output
+- `data.hdb` is the query
+
+## Packages
+
+.code scan_example/hdb_criteria.rego
+
+OPA policies belong to named packages like `package hdb` or `package hdb.new_flat.keys`.
+
+Thus the `data.hdb` query in:
+```
+opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty data.hdb
+```
+means "tell me about policy decisions made in the hdb package".
+
+And OPA outputs:
+```
+{
+  "at_least_one_citizen": true
+}
+
+```
+
+## The meaning of _ 
+
+.code scan_example/hdb_criteria.rego
+
+The above reads:
+- if `at_least_one_citizen` is undefined, give it the default value `false`.
+- `at_least_one_citizen` is true if there is some input applicants[ i ] whose resident_status is "citizen".
+
+## input.applicants[ _ ]
+
+.code scan_example/hdb_application.yaml
+
+In the above case:
+- applicants[0] ⇨ "pr"
+- applicants[1] ⇨ "citizen"
+- applicants[2] ⇨ "other"
+
+## At least two Singapore Citizens or a Citizen and a PR
+
+.code two_example/hdb_criteria.rego
+
+The above reads: For some i and j where i is not equal to j ....
+
+## Testing policies
+
+.code two_example/hdb_criteria_test.rego
+
+## Running the test
+
+The previous test code is in hdb_criteria_test.rego. We run it thus: 
+
+```
+cd two_example
+opa test . --verbose
+```
+
+And the results:
+```
+data.hdb.test_at_least_two_citizens_or_a_citizen_and_a_pr: PASS (918.925µs)
+--------------------------------------------------------------------------------
+PASS: 1/1
+
+```
+
+Now let's change the test fixture to cause a failure to see how OPA test reports
+a failure.
+
+## Deployment
+
+Open Policy Agent can be deployed:
+- as a standalone binary with no other dependencies.
+  This is how I have been running OPA in this talk.
+- as a sidecar container in a kubernetes pod.
+- as a docker container in some containerized environment.
+- as a library linked into a `Go` program.
+
+The usual way to interact with OPA is via http/json calls
+to the OPA process. This makes OPA language-independent with the
+only constraint being the communications speak json.
+
+## Self-contained policy checking with Go
+
+## Presentation and source code
+
+Available at: 
+
+.link https://github.com/siuyin/present-rules_based_systems_with_open_policy_agent
+
