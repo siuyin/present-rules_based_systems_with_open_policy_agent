@@ -6,9 +6,15 @@ Loh Siu Yin
 Technology Consultant, Beyond Broadcast LLP
 siuyin@beyondbroadcast.com
 
+## Goals of this talk
+1. Introduce Open Policy Agent and its policy language `rego`.
+1. "By-the-way" introduction to Go language features.
+
 ## A Go program asking for permission
 
 .play perm/main.go
+
+The above is a completely valid Go program. Click `run` execute.
 
 ## Complex if-then-else logic
 
@@ -109,7 +115,7 @@ opa eval --input hdb_application.yaml --data hdb_criteria.rego --format pretty d
 
 input ⇨ system ⇨ output
 
-OPA assignes the input yaml or json document to an internal global variable named `input`.
+OPA assigns the input yaml or json document to an internal global variable named `input`.
 
 The OPA system contains policies (.rego files), internal data (.json or yaml files)
 and optionally external data connections (eg. to databases).
@@ -193,6 +199,8 @@ PASS: 1/1
 Now let's change the test fixture to cause a failure to see how OPA test reports
 a failure.
 
+Eg. change the first test fixture from ("citizen","citizen") to ("citizen","other").
+
 ## Deployment
 
 Open Policy Agent can be deployed:
@@ -208,9 +216,56 @@ only constraint being the communications speak json.
 
 ## Self-contained policy checking with Go
 
+## OPA synergies with Go
+
+1. OPA is written in Go
+
+1. OPA can be extended with Go
+ https://www.openpolicyagent.org/docs/latest/extensions/
+
+1. OPA can be integrated with a Go application and deployed as a single binary with no external dependencies.
+
+## A Go program asking for permission
+
+.code perm2/main.go /20 OMIT/,/40 OMIT/
+
+## OKToBuyFlat
+
+.code perm2/main.go /40 OMIT/,/50 OMIT/
+
+## Exercising the demo Go application
+
+- Run: 
+```
+    cd perm2
+    go run main.go
+```
+
+- Edit code to trigger non-approval. Eg. Change application to single citizen and two others.
+
+- Explain Go's interface{} and type assertions.
+
+- Create a standalone Go application with:
+
+```
+	CGO_ENABLED=0 go build
+	file perm2
+	ls -lh perm2
+```
+
+
 ## Presentation and source code
 
 Available at: 
 
 .link https://github.com/siuyin/present-rules_based_systems_with_open_policy_agent
 
+
+Bonus:
+
+Included in the above repository is code for a second presentation:
+rules_based_systems_with_open_policy_agent-part2.slide
+
+A video of that presentation is available at: 
+
+.link https://youtu.be/Nk9UYjJerUY
