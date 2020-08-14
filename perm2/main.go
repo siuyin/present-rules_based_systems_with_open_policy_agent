@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("Closer to the real HDB")
 	app := BuyFlatApplication{[]Applicant{
 		Applicant{ResidentStatus: "pr"},
-		Applicant{ResidentStatus: "citizen"}, // change me
+		Applicant{ResidentStatus: "pr"}, // change me
 		Applicant{ResidentStatus: "other"},
 	}}
 	decision := OKToBuyFlat(&app)
@@ -34,7 +34,7 @@ func main() {
 
 // 40 OMIT
 func OKToBuyFlat(app *BuyFlatApplication) ApplicationDecision {
-	rego := rego.New( // explain this structure
+	rg := rego.New( // explain this structure
 		rego.Query("data.hdb"),
 		rego.Input(app),
 		rego.Module("hdb_criteria.rego", `
@@ -45,7 +45,7 @@ atLeastOneCitizen {
 	input.Applicants[_].ResidentStatus == "citizen"
 }
 `))
-	rs, err := rego.Eval(context.Background()) // rs: result set, has Expressions and Bindings
+	rs, err := rg.Eval(context.Background()) // rs: result set, has Expressions and Bindings
 	if err != nil {
 		fmt.Println(err)
 	}
