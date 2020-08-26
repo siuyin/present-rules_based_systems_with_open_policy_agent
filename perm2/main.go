@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("Closer to the real HDB")
 	app := BuyFlatApplication{[]Applicant{
 		Applicant{ResidentStatus: "pr"},
-		Applicant{ResidentStatus: "pr"}, // change me
+		Applicant{ResidentStatus: "citizen"}, // change me
 		Applicant{ResidentStatus: "other"},
 	}}
 	decision := OKToBuyFlat(&app)
