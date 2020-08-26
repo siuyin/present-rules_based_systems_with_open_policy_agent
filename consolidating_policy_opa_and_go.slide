@@ -256,6 +256,8 @@ only constraint being the communications speak json.
 	GOOS=windows GOARCH=amd64 go build
 	file perm2.exe
 	ls -lh perm2.exe
+
+	go tool dist list
 ```
 
 
