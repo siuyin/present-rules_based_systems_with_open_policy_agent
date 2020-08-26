@@ -241,7 +241,8 @@ only constraint being the communications speak json.
     go run main.go
 ```
 
-- Edit code to trigger non-approval. Eg. Change application to single citizen and two others.
+- Edit code to trigger non-approval. Eg. Change application to
+ replace the single citizen with a pr.
 
 - Explain Go's interface{} and type assertions.
 
